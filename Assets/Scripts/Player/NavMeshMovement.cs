@@ -2,6 +2,7 @@
 using UnityEngine;
 using Extensions.EventSystem;
 using UnityEngine.AI;
+using System;
 
 namespace Game
 {
@@ -20,6 +21,8 @@ namespace Game
         private GlobalEvent _onMoveFinish = null;
         [SerializeField]
         private GlobalEvent _onMove = null;
+
+        public Action OnFinish;
 
         public Vector3 Destination
         {
@@ -101,6 +104,7 @@ namespace Game
 
             moveCoroutine = null;
 
+            OnFinish?.Invoke();
             _onMoveFinish.Invoke(this, null);
         }
     }

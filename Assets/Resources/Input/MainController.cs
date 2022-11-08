@@ -48,15 +48,6 @@ namespace InputSystem
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""MiddleClick"",
-                    ""type"": ""Button"",
-                    ""id"": ""6427b394-21b5-4e52-ba56-eb60a2bd8de7"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""MousePosition"",
                     ""type"": ""Value"",
                     ""id"": ""4a548457-04b6-459d-8f4a-3e2f54664f24"",
@@ -91,17 +82,6 @@ namespace InputSystem
                 },
                 {
                     ""name"": """",
-                    ""id"": ""0e1c6be3-c52d-4375-b76e-c5930f624e9e"",
-                    ""path"": ""<Mouse>/middleButton"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""MiddleClick"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""46ddb6ad-a1c5-491c-9de7-6a566bc60065"",
                     ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
@@ -120,7 +100,6 @@ namespace InputSystem
             m_MainMap = asset.FindActionMap("MainMap", throwIfNotFound: true);
             m_MainMap_RightClick = m_MainMap.FindAction("RightClick", throwIfNotFound: true);
             m_MainMap_LeftClick = m_MainMap.FindAction("LeftClick", throwIfNotFound: true);
-            m_MainMap_MiddleClick = m_MainMap.FindAction("MiddleClick", throwIfNotFound: true);
             m_MainMap_MousePosition = m_MainMap.FindAction("MousePosition", throwIfNotFound: true);
         }
 
@@ -183,7 +162,6 @@ namespace InputSystem
         private IMainMapActions m_MainMapActionsCallbackInterface;
         private readonly InputAction m_MainMap_RightClick;
         private readonly InputAction m_MainMap_LeftClick;
-        private readonly InputAction m_MainMap_MiddleClick;
         private readonly InputAction m_MainMap_MousePosition;
         public struct MainMapActions
         {
@@ -191,7 +169,6 @@ namespace InputSystem
             public MainMapActions(@MainController wrapper) { m_Wrapper = wrapper; }
             public InputAction @RightClick => m_Wrapper.m_MainMap_RightClick;
             public InputAction @LeftClick => m_Wrapper.m_MainMap_LeftClick;
-            public InputAction @MiddleClick => m_Wrapper.m_MainMap_MiddleClick;
             public InputAction @MousePosition => m_Wrapper.m_MainMap_MousePosition;
             public InputActionMap Get() { return m_Wrapper.m_MainMap; }
             public void Enable() { Get().Enable(); }
@@ -208,9 +185,6 @@ namespace InputSystem
                     @LeftClick.started -= m_Wrapper.m_MainMapActionsCallbackInterface.OnLeftClick;
                     @LeftClick.performed -= m_Wrapper.m_MainMapActionsCallbackInterface.OnLeftClick;
                     @LeftClick.canceled -= m_Wrapper.m_MainMapActionsCallbackInterface.OnLeftClick;
-                    @MiddleClick.started -= m_Wrapper.m_MainMapActionsCallbackInterface.OnMiddleClick;
-                    @MiddleClick.performed -= m_Wrapper.m_MainMapActionsCallbackInterface.OnMiddleClick;
-                    @MiddleClick.canceled -= m_Wrapper.m_MainMapActionsCallbackInterface.OnMiddleClick;
                     @MousePosition.started -= m_Wrapper.m_MainMapActionsCallbackInterface.OnMousePosition;
                     @MousePosition.performed -= m_Wrapper.m_MainMapActionsCallbackInterface.OnMousePosition;
                     @MousePosition.canceled -= m_Wrapper.m_MainMapActionsCallbackInterface.OnMousePosition;
@@ -224,9 +198,6 @@ namespace InputSystem
                     @LeftClick.started += instance.OnLeftClick;
                     @LeftClick.performed += instance.OnLeftClick;
                     @LeftClick.canceled += instance.OnLeftClick;
-                    @MiddleClick.started += instance.OnMiddleClick;
-                    @MiddleClick.performed += instance.OnMiddleClick;
-                    @MiddleClick.canceled += instance.OnMiddleClick;
                     @MousePosition.started += instance.OnMousePosition;
                     @MousePosition.performed += instance.OnMousePosition;
                     @MousePosition.canceled += instance.OnMousePosition;
@@ -238,7 +209,6 @@ namespace InputSystem
         {
             void OnRightClick(InputAction.CallbackContext context);
             void OnLeftClick(InputAction.CallbackContext context);
-            void OnMiddleClick(InputAction.CallbackContext context);
             void OnMousePosition(InputAction.CallbackContext context);
         }
     }

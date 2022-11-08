@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Linq;
 using Extensions.EventSystem;
+using System;
 
 namespace InputSystem
 {
@@ -12,12 +13,14 @@ namespace InputSystem
         private const float INPUT_SAFE_DRAG_OFFSET = 1f;
 
         public static bool LeftInput { get; private set; }
-        public static bool MiddleInput { get; private set; }
+        public static bool RightInput { get; private set; }
         public static Vector2 MousePosition { get; private set; }
 
         [Header("General")]
         [SerializeField]
         private LayerMask _layerMask = new LayerMask();
+        [SerializeField]
+        private LayerMask _dragLayerMask = new LayerMask();
 
         [Header("Scene Objects")]
         [SerializeField]
@@ -38,15 +41,27 @@ namespace InputSystem
         [SerializeField]
         private GlobalEvent _onDragFinish = null;
 
-        /// <summary>
-        /// Current input data. Can be null;
-        /// </summary>
-        public InputData Current { get; private set; }
+        public Action<InputData> OnMove;
+        public Action<InputData> OnStart;
 
-        public InputData Drag { get; private set; }
+        /// <summary>
+        /// General input data.
+        /// </summary>
+        public InputData GeneralData { get; private set; }
+
+        /// <summary>
+        /// Left click input data;
+        /// </summary>
+        public InputData MainActionData { get; private set; }
+
+        /// <summary>
+        /// Input data for camera moving.
+        /// </summary>
+        public InputData DragData { get; private set; }
 
         private Ray ray;
         private RaycastHit hit;
+        List<GameObject> hittedObjects;
 
         private MainController mainController = null;
 
@@ -61,36 +76,58 @@ namespace InputSystem
 
         private void Update()
         {
-            if (MiddleInput)
+            ray = _gameCamera.ScreenPointToRay(MousePosition);
+
+            Physics.Raycast(ray, out hit, Mathf.Infinity, _layerMask);
+
+            hittedObjects = Physics.RaycastAll(ray, Mathf.Infinity, _layerMask).Select(h => h.transform.gameObject).ToList();
+
+            if (GeneralData == null)
+                GeneralData = new InputData(hit.point, hittedObjects);
+
+            GeneralData.Position = hit.point;
+            GeneralData.Objects = hittedObjects;
+
+            Drag();
+            MianAction();
+        }
+
+        private void Drag()
+        {
+            if (RightInput)
             {
                 ray = _gameCamera.ScreenPointToRay(MousePosition);
 
-                Physics.Raycast(ray, out hit, Mathf.Infinity, _layerMask);
+                Physics.Raycast(ray, out hit, Mathf.Infinity, _dragLayerMask);
 
-                if(Drag == null)
+                if (DragData == null)
                 {
-                    Drag = new InputData(hit.point);
+                    DragData = new InputData(hit.point);
 
                     _onDragStart.Invoke(this, null);
                 }
-                
-                Drag.Position = hit.point;
 
-                if (Vector3.Distance(Drag.StartPosition, Drag.Position) < INPUT_SAFE_DRAG_OFFSET)
+                DragData.Position = hit.point;
+
+                if (Vector3.Distance(DragData.StartPosition, DragData.Position) < INPUT_SAFE_DRAG_OFFSET)
                     return;
 
-                _onDrag.Invoke(this, Drag);
+                _onDrag.Invoke(this, DragData);
 
                 return;
             }
 
-            if (Drag != null)
-            {
-                Drag = null;
+            if (DragData == null)
+                return;
 
-                _onDragFinish.Invoke(this, null);
-            }
+            DragData = null;
 
+            _onDragFinish.Invoke(this, null);
+            
+        }
+
+        private void MianAction()
+        {
             if (LeftInput)
             {
                 ray = _gameCamera.ScreenPointToRay(MousePosition);
@@ -99,37 +136,39 @@ namespace InputSystem
 
                 List<GameObject> hittedObjects = Physics.RaycastAll(ray, Mathf.Infinity, _layerMask).Select(h => h.transform.gameObject).ToList();
 
-                if (Current == null)
+                if (MainActionData == null)
                 {
-                    Current = new InputData(hit.point, hittedObjects);
+                    MainActionData = new InputData(hit.point, hittedObjects);
 
-                    _onStart.Invoke(this, Current);
+                    OnStart?.Invoke(MainActionData);
+                    _onStart.Invoke(this, MainActionData);
                 }
 
-                Current.Position = hit.point;
-                Current.Objects = hittedObjects;
+                MainActionData.Position = hit.point;
+                MainActionData.Objects = hittedObjects;
 
-                if (Vector3.Distance(Current.StartPosition, Current.Position) < INPUT_SAFE_OFFSET)
+                if (Vector3.Distance(MainActionData.StartPosition, MainActionData.Position) < INPUT_SAFE_OFFSET)
                     return;
 
-                _onMove.Invoke(this, Current);
+                OnMove?.Invoke(MainActionData);
+                _onMove.Invoke(this, MainActionData);
 
                 return;
             }
 
-            if (Current == null)
+            if (MainActionData == null)
                 return;
 
-            _onFinish.Invoke(this, Current);
+            _onFinish.Invoke(this, MainActionData);
 
-            Current = null;
+            MainActionData = null;
         }
 
         public void OnRightClick(InputAction.CallbackContext context)
         {
             if (context.phase == InputActionPhase.Started) ;
 
-            
+            RightInput = context.phase != InputActionPhase.Canceled;
         }
 
         public void OnLeftClick(InputAction.CallbackContext context)
@@ -143,7 +182,7 @@ namespace InputSystem
         {
             if (context.phase == InputActionPhase.Started) ;
 
-            MiddleInput = context.phase != InputActionPhase.Canceled;
+            //MiddleInput = context.phase != InputActionPhase.Canceled;
         }
 
         public void OnMousePosition(InputAction.CallbackContext context)

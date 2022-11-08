@@ -5,12 +5,12 @@ using InputSystem;
 
 namespace Game
 {
-    public class PlayerBehaviour : CharacterBehaviour
+    public class PlayerBehaviour : GameBehaviour
     {
         [Header("General")]
         [SerializeField]
         private NavMeshMovement _movement = null;
-
+        
         [Header("Global Events")]
         [SerializeField]
         private GlobalEvent _onInputStart = null;
@@ -34,7 +34,7 @@ namespace Game
             InputData inputData = (InputData)data;
 
             _movement.SetDestination(inputData.Position);
-    }
+        }
 
         private void HandleInputMove(object sender, object data)
         {

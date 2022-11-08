@@ -26,6 +26,11 @@ namespace Game
             _onMoveFinish.Subscribe(HandleMoveFinish);
         }
 
+        public void SetLevitating(bool value)
+        {
+            _animator.SetBool(LEVITATING, value);
+        }
+
         private void HandleMove(object sender, object _)
         {
             _animator.SetFloat(FORWARD, 1f);

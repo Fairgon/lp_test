@@ -10,7 +10,7 @@ namespace Game
         Neutral
     }
 
-    public class CharacterBehaviour : MonoBehaviour
+    public class GameBehaviour : MonoBehaviour
     {
         public Owner Owner => _owner;
         [SerializeField]

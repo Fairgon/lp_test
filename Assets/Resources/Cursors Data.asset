@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3549f479b0a857d4eb48cb354a7dc732, type: 3}
+  m_Name: Cursors Data
+  m_EditorClassIdentifier: 
+  presets:
+  - _type: 0
+    _texture: {fileID: 2800000, guid: f75349a286817b6479976a10636d3b2c, type: 3}
+  - _type: 1
+    _texture: {fileID: 2800000, guid: 83810ed814043964f96abe447dbf3b1f, type: 3}
+  - _type: 2
+    _texture: {fileID: 2800000, guid: d59f158d902389043a1236e952906a5e, type: 3}
