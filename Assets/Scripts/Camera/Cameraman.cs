@@ -78,11 +78,9 @@ namespace Game
 
             while (dist > 0.2f)
             {
-                transform.position = Vector3.Lerp(transform.position, Target.position, Time.fixedDeltaTime * 2f);
+                transform.position = Vector3.Slerp(transform.position, Target.position, Time.fixedDeltaTime * 0.5f);
 
-                _axis.localPosition = Vector3.Lerp(_axis.localPosition, Offset.Position, Time.fixedDeltaTime * 2f);
-
-                transform.LookAt(Target.position);
+                _axis.localPosition = Vector3.Slerp(_axis.localPosition, Offset.Position, Time.fixedDeltaTime * 0.5f);
 
                 yield return new WaitForEndOfFrame();
 
