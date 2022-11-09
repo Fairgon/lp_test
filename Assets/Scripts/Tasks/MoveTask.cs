@@ -9,6 +9,8 @@ namespace Game
         public event Action<ITask> OnStart;
         public event Action<ITask> OnFinish;
 
+        public bool CanBreak { get; set; } = true;
+
         private Vector3 pos;
         private PlayerBehaviour player = null;
 

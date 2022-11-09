@@ -9,6 +9,8 @@ namespace Game
         public event Action<ITask> OnStart;
         public event Action<ITask> OnFinish;
 
+        public bool CanBreak { get; set; } = false;
+
         private Field field = null;
         private PlayerBehaviour player = null;
         private AnimationComponent animation = null;

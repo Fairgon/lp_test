@@ -17,6 +17,12 @@ namespace Game
 
         private Queue<ITask> tasks = new Queue<ITask>();
         private ITask curTask = null;
+        private PlayerBehaviour player;
+
+        private void Awake()
+        {
+            player = FindObjectOfType<PlayerBehaviour>();
+        }
 
         private void OnEnable()
         {
@@ -30,8 +36,13 @@ namespace Game
 
         private void FixedUpdate()
         {
-            if(tasks.Count > 0 && curTask == null)
+            if(tasks.Count > 0 && (curTask == null || curTask.CanBreak))
             {
+                if(curTask != null)
+                {
+                    curTask.Break();
+                }
+
                 curTask = tasks.Dequeue();
 
                 curTask.Start();
@@ -97,17 +108,25 @@ namespace Game
 
         private void HandleClick(InputData data)
         {
-            if (behaviour == null)
+            if (behaviour != null)
+            {
+                ITaskMaker taskMaker = behaviour.GetComponent<ITaskMaker>();
+
+                ITask task = taskMaker.GetTask();
+
+                if (task == null)
+                    return;
+
+                tasks.Enqueue(task);
+
                 return;
+            }
 
-            ITaskMaker taskMaker = behaviour.GetComponent<ITaskMaker>();
+            MoveTask move = new MoveTask();
 
-            ITask task = taskMaker.GetTask();
+            move.Init(player, _input.GeneralData.Position);
 
-            if (task == null)
-                return;
-
-            tasks.Enqueue(task);
+            tasks.Enqueue(move);
         }
 
         private void Attack()
