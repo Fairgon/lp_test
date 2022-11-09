@@ -8,7 +8,8 @@ namespace Game
     {
         Default, 
         Attack,
-        Use
+        Use,
+        Drag
     }
 
     public class CursorController : MonoBehaviour
@@ -20,8 +21,8 @@ namespace Game
         private InputController _input = null;
         [SerializeField]
         private CursorsData data = null;
-        [SerializeField]
-        private Transform _spriteTarget = null;
+
+        private GameBehaviour behaviour = null;
 
         private void Awake()
         {
@@ -29,32 +30,65 @@ namespace Game
 
             Cursor.SetCursor(data.GetCursor(CursorTypes.Default).Texture, Vector2.zero, CursorMode.Auto);
         }
-        
-        public static void SetCursor(CursorTypes type)
+
+        public static void SetCursor(CursorTypes type, bool ignore = false)
         {
+            if (InputController.RightInput && !ignore)
+                return;
+
             Cursor.SetCursor(instance.data.GetCursor(type).Texture, Vector2.zero, CursorMode.Auto);
         }
 
         private void OnEnable()
         {
-            _input.OnStart += HandleInputStart;
-            _input.OnMove += HandleInputMove;
+            _input.OnDragStart += HandleDragStart;
+            _input.OnDragFinish += HandleDragFinish;
+            
+            _input.OnHitObject += HandleHitObject;
         }
 
         private void OnDisable()
         {
-            _input.OnStart -= HandleInputStart;
-            _input.OnMove -= HandleInputMove;
+            _input.OnDragStart -= HandleDragStart;
+            _input.OnDragFinish -= HandleDragFinish;
+            
+            _input.OnHitObject -= HandleHitObject;
         }
 
-        private void HandleInputStart(InputData data)
+        private void HandleDragStart()
         {
-            _spriteTarget.position = data.Position + Vector3.up * 0.1f;
+            SetCursor(CursorTypes.Drag, true);
         }
 
-        private void HandleInputMove(InputData data)
+        private void HandleDragFinish()
         {
-            _spriteTarget.position = data.Position + Vector3.up * 0.1f;
+            HandleHitObject(_input.HittedObject);
+        }
+
+        private void HandleHitObject(GameObject hittedObject)
+        {
+            if (hittedObject == null)
+            {
+                behaviour = null;
+
+                SetCursor(CursorTypes.Default);
+
+                return;
+            }
+
+            behaviour = hittedObject.GetComponent<GameBehaviour>();
+
+            if (behaviour == null)
+            {
+                SetCursor(CursorTypes.Default);
+
+                return;
+            }
+            
+            if (behaviour.Owner == Owner.AI)
+                SetCursor(CursorTypes.Attack);
+            else if (behaviour.Owner == Owner.Neutral)
+                SetCursor(CursorTypes.Use);
         }
     }
 }

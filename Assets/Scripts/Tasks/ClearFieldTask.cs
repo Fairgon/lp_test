@@ -23,6 +23,8 @@ namespace Game
 
         public void Start()
         {
+            CanBreak = true;
+
             movement = player.GetComponent<NavMeshMovement>();
 
             movement.SetDestination(field.Point.position);
@@ -33,6 +35,8 @@ namespace Game
 
         private void HandleOnPosition()
         {
+            CanBreak = false;
+
             movement.OnFinish -= HandleOnPosition;
 
             animation = player.GetComponent<AnimationComponent>();
@@ -55,7 +59,9 @@ namespace Game
 
         public void Break()
         {
+            field.ResetTask();
 
+            movement.OnFinish -= HandleOnPosition;
         }
     }
 }

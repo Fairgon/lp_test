@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using InputSystem;
-using System.Linq;
-
+using Extensions.EventSystem;
+    
 namespace Game
 {
     public class TaskManager : MonoBehaviour
@@ -11,9 +11,14 @@ namespace Game
         [SerializeField]
         private InputController _input = null;
 
+        [Header("Global Events")]
+        [SerializeField]
+        private GlobalEvent _onCellClicked = null;
+        [SerializeField]
+        private GlobalEvent _onCreateTask = null;
+
         private GameBehaviour behaviour = null;
         private SelectionComponent selection = null;
-        private SelectionComponent newSelection = null;
 
         private Queue<ITask> tasks = new Queue<ITask>();
         private ITask curTask = null;
@@ -27,11 +32,24 @@ namespace Game
         private void OnEnable()
         {
             _input.OnStart += HandleClick;
+            _input.OnHitObject += HandleHitObject;
+
+            _onCreateTask.Subscribe(HandleCreateTask);
         }
 
         private void OnDisable()
         {
             _input.OnStart -= HandleClick;
+            _input.OnHitObject -= HandleHitObject;
+
+            _onCreateTask.Unsubscribe(HandleCreateTask);
+        }
+
+        private void HandleCreateTask(object sender, object data)
+        {
+            ITask task = (ITask)data;
+
+            AddTask(task);
         }
 
         private void FixedUpdate()
@@ -49,54 +67,33 @@ namespace Game
 
                 curTask.OnFinish += HandleTaskFinsh;
             }
+        }
 
-            if (_input.GeneralData == null)
-                return;
-
-            for(int i = 0; i < _input.GeneralData.Objects.Count; ++i)
+        private void HandleHitObject(GameObject hittedObject)
+        {
+            if(hittedObject == null)
             {
-                behaviour = _input.GeneralData.Objects[i].GetComponent<GameBehaviour>();
-                newSelection = _input.GeneralData.Objects[i].GetComponent<SelectionComponent>();
-
-                if(newSelection != null && newSelection != selection)
-                {
-                    if(selection != null)
-                        selection.Set(false);
-
-                    selection = newSelection;
-
-                    selection.Set(true);
-                }
-
-                if (behaviour == null)
-                    continue;
-
-                if(behaviour.Owner == Owner.AI)
-                {
-                    Attack();
-
-                    break;
-                }
-
-                if (behaviour.Owner == Owner.Neutral)
-                {
-                    Use();
-
-                    break;
-                }
-            }
-
-            if(newSelection == null && selection != null)
-            {
-                selection.Set(false);
+                if (selection != null)
+                    selection.Set(false);
 
                 selection = null;
+                behaviour = null;
+
+                return;
             }
 
-            if(behaviour == null)
-            {
-                CursorController.SetCursor(CursorTypes.Default);
-            }
+            if(selection != null)
+                selection.Set(false);
+
+            selection = hittedObject.GetComponent<SelectionComponent>();
+
+            if (selection != null)
+                selection.Set(true);
+
+            behaviour = hittedObject.GetComponent<GameBehaviour>();
+
+            if (behaviour == null)
+                return;
         }
 
         private void HandleTaskFinsh(ITask task)
@@ -114,12 +111,19 @@ namespace Game
 
                 ITask task = taskMaker.GetTask();
 
-                if (task == null)
+                if (taskMaker != null && task != null)
+                {
+                    tasks.Enqueue(task);
+
+                    return;
+                }
+
+                Cell cell = behaviour.GetComponent<Cell>();
+
+                if (cell == null)
                     return;
 
-                tasks.Enqueue(task);
-
-                return;
+                _onCellClicked.Invoke(this, cell);
             }
 
             MoveTask move = new MoveTask();
@@ -129,14 +133,9 @@ namespace Game
             tasks.Enqueue(move);
         }
 
-        private void Attack()
+        public void AddTask(ITask task)
         {
-            CursorController.SetCursor(CursorTypes.Attack);
-        }
-
-        private void Use()
-        {
-            CursorController.SetCursor(CursorTypes.Use);
+            tasks.Enqueue(task);
         }
     }
 }

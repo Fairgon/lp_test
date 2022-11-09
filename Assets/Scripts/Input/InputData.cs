@@ -14,16 +14,16 @@ namespace InputSystem
         /// </summary>
         public Vector3 Position;
         /// <summary>
-        /// List of the objects under current 
+        /// Hitted object.
         /// </summary>
-        public List<GameObject> Objects = null;
+        public GameObject Object;
 
-        public InputData(Vector3 startPoint, List<GameObject> hittedObjects)
+        public InputData(Vector3 startPoint, GameObject hittedObject)
         {
             StartPosition = startPoint;
             Position = StartPosition;
 
-            Objects = hittedObjects;
+            Object = hittedObject;
         }
 
         public InputData(Vector3 startPoint)

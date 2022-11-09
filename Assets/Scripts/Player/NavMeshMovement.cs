@@ -58,7 +58,7 @@ namespace Game
             moveCoroutine = null;
         }
 
-        public void SetDestination(Vector3 destination, float stopDistance = STOP_DISTANCE)
+        public virtual void SetDestination(Vector3 destination, float stopDistance = STOP_DISTANCE)
         {
             target = null;
 

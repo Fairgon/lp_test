@@ -4,6 +4,7 @@ using UnityEngine;
 using System;
 using Extensions.EventSystem;
 using UnityEngine.AI;
+using Game.UI;
 
 namespace Game
 {
@@ -22,7 +23,11 @@ namespace Game
         [SerializeField]
         private GameObject _dustFX = null;
         [SerializeField]
+        private GameObject _cleanFX = null;
+        [SerializeField]
         private Transform _cellParent = null;
+        [SerializeField]
+        private FieldHUD _hud = null;
 
         [Header("Cells Prefabs")]
         [SerializeField]
@@ -45,6 +50,11 @@ namespace Game
         private List<bool> buildData = null;
 
         private bool cleaned = false;
+
+        public void ResetTask()
+        {
+            cleaned = false;
+        }
 
         public ITask GetTask()
         {
@@ -69,6 +79,7 @@ namespace Game
             StartCoroutine(BuildCoroutine());
 
             _dustFX.SetActive(true);
+            _hud.Init(this);
         }
 
         private IEnumerator BuildCoroutine()
@@ -87,7 +98,7 @@ namespace Game
 
                 time += Time.deltaTime;
 
-                OnBuild?.Invoke(time);
+                OnBuild?.Invoke(time / _buildTime);
 
                 yield return new WaitForEndOfFrame();
             }
@@ -98,6 +109,8 @@ namespace Game
 
             GetComponent<Collider>().enabled = false;
             GetComponent<NavMeshObstacle>().enabled = false;
+
+            _hud.gameObject.SetActive(false);
         }
 
         public void StartCleaning()
@@ -107,13 +120,15 @@ namespace Game
 
         private IEnumerator Magic()
         {
+            _cleanFX.SetActive(true);
+
             var materials = Ivy.materials;
 
             float height = materials[0].GetFloat("_Height");
 
             while (materials[0].GetFloat("_Height") > 0)
             {
-                height -= Time.deltaTime * 5f;
+                height -= Time.deltaTime * 2.5f;
 
                 materials[0].SetFloat("_Height", height);
 
@@ -122,8 +137,17 @@ namespace Game
                 yield return new WaitForEndOfFrame();
             }
 
+            _cleanFX.GetComponent<ParticleSystem>().Stop();
+
             OnCleaned?.Invoke();
             _onCleaned.Invoke(this, null);
+
+            GetComponent<SelectionComponent>().SetInteractable(false);
+            _owner = Owner.Player;
+
+            yield return new WaitForSeconds(1f);
+
+            _cleanFX.SetActive(false);
         }
     }
 }

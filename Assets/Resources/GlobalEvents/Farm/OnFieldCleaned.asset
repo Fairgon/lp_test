@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b4b1892cabe072a4aa628f346aa872fd, type: 3}
   m_Name: OnFieldCleaned
   m_EditorClassIdentifier: 
-  _sender: GameObject
+  _sender: Field
   _data: null

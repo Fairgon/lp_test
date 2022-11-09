@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using System.Linq;
 using Extensions.EventSystem;
 using System;
+using UnityEngine.EventSystems;
 
 namespace InputSystem
 {
@@ -33,6 +34,8 @@ namespace InputSystem
         private GlobalEvent _onFinish = null;
         [SerializeField]
         private GlobalEvent _onMove = null;
+        [SerializeField]
+        private GlobalEvent _onHitObject = null;
 
         [Space, SerializeField]
         private GlobalEvent _onDragStart = null;
@@ -43,6 +46,10 @@ namespace InputSystem
 
         public Action<InputData> OnMove;
         public Action<InputData> OnStart;
+
+        public Action OnDragStart;
+        public Action OnDragFinish;
+        public Action<GameObject> OnHitObject;
 
         /// <summary>
         /// General input data.
@@ -61,7 +68,11 @@ namespace InputSystem
 
         private Ray ray;
         private RaycastHit hit;
-        List<GameObject> hittedObjects;
+
+        public GameObject HittedObject => hittedObject;
+        private GameObject hittedObject;
+        private GameObject newHittedObject;
+        private Vector3 dragPos;
 
         private MainController mainController = null;
 
@@ -76,20 +87,47 @@ namespace InputSystem
 
         private void Update()
         {
+            if (IsMouseOverUi)
+            {
+                GeneralData = null;
+
+                hittedObject = null;
+
+                OnHitObject?.Invoke(hittedObject);
+                _onHitObject?.Invoke(this, hittedObject);
+
+                return;
+            }
+            
             ray = _gameCamera.ScreenPointToRay(MousePosition);
 
-            Physics.Raycast(ray, out hit, Mathf.Infinity, _layerMask);
+            newHittedObject = Physics.Raycast(ray, out hit, Mathf.Infinity, _layerMask) ? hit.transform.gameObject : null;
 
-            hittedObjects = Physics.RaycastAll(ray, Mathf.Infinity, _layerMask).Select(h => h.transform.gameObject).ToList();
+            if(hittedObject != newHittedObject)
+            {
+                hittedObject = newHittedObject;
+
+                OnHitObject?.Invoke(hittedObject);
+                _onHitObject?.Invoke(this, hittedObject);
+            }
 
             if (GeneralData == null)
-                GeneralData = new InputData(hit.point, hittedObjects);
+                GeneralData = new InputData(hit.point);
 
             GeneralData.Position = hit.point;
-            GeneralData.Objects = hittedObjects;
 
             Drag();
             MianAction();
+        }
+
+        public static bool IsMouseOverUi
+        {
+            get
+            {
+                EventSystem eventSystem = EventSystem.current;
+
+                return (eventSystem != null && eventSystem.IsPointerOverGameObject());
+            }
         }
 
         private void Drag()
@@ -100,14 +138,18 @@ namespace InputSystem
 
                 Physics.Raycast(ray, out hit, Mathf.Infinity, _dragLayerMask);
 
+                dragPos = hit.point;
+                dragPos.y = 0f;
+
                 if (DragData == null)
                 {
-                    DragData = new InputData(hit.point);
+                    DragData = new InputData(dragPos);
 
+                    OnDragStart?.Invoke();
                     _onDragStart.Invoke(this, null);
                 }
 
-                DragData.Position = hit.point;
+                DragData.Position = dragPos;
 
                 if (Vector3.Distance(DragData.StartPosition, DragData.Position) < INPUT_SAFE_DRAG_OFFSET)
                     return;
@@ -122,30 +164,24 @@ namespace InputSystem
 
             DragData = null;
 
+            OnDragFinish?.Invoke();
             _onDragFinish.Invoke(this, null);
-            
         }
 
         private void MianAction()
         {
             if (LeftInput)
             {
-                ray = _gameCamera.ScreenPointToRay(MousePosition);
-
-                Physics.Raycast(ray, out hit, Mathf.Infinity, _layerMask);
-
-                List<GameObject> hittedObjects = Physics.RaycastAll(ray, Mathf.Infinity, _layerMask).Select(h => h.transform.gameObject).ToList();
-
                 if (MainActionData == null)
                 {
-                    MainActionData = new InputData(hit.point, hittedObjects);
+                    MainActionData = new InputData(hit.point, hittedObject);
 
                     OnStart?.Invoke(MainActionData);
                     _onStart.Invoke(this, MainActionData);
                 }
 
                 MainActionData.Position = hit.point;
-                MainActionData.Objects = hittedObjects;
+                MainActionData.Object = hittedObject;
 
                 if (Vector3.Distance(MainActionData.StartPosition, MainActionData.Position) < INPUT_SAFE_OFFSET)
                     return;

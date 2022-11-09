@@ -1,6 +1,6 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
 using Extensions.EventSystem;
+using System;
 
 namespace Game
 {
@@ -20,15 +20,24 @@ namespace Game
         [SerializeField]
         private GlobalEvent _onMoveFinish = null;
 
+        public Action<bool> OnLevitating;
+
         private void OnEnable()
         {
             _onMove.Subscribe(HandleMove);
             _onMoveFinish.Subscribe(HandleMoveFinish);
         }
 
+        public void Attack()
+        {
+            _animator.SetTrigger(ATTACK);
+        }
+
         public void SetLevitating(bool value)
         {
             _animator.SetBool(LEVITATING, value);
+
+            OnLevitating?.Invoke(value);
         }
 
         private void HandleMove(object sender, object _)
