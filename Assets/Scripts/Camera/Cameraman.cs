@@ -76,7 +76,7 @@ namespace Game
         {
             float dist = (transform.position - Target.position).magnitude + (_axis.localPosition - Offset.Position).magnitude;
 
-            while (dist > 0.2f)
+            while (dist > 2f)
             {
                 transform.position = Vector3.Slerp(transform.position, Target.position, Time.fixedDeltaTime * 0.5f);
 
@@ -89,6 +89,7 @@ namespace Game
 
             _onPosition.Invoke(this, Target.position);
             coroutine = null;
+            Target = null;
         }
 
         private void FixedUpdate()
