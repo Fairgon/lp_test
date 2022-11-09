@@ -102,7 +102,12 @@ namespace Game
 
             ITaskMaker taskMaker = behaviour.GetComponent<ITaskMaker>();
 
-            tasks.Enqueue(taskMaker.GetTask());
+            ITask task = taskMaker.GetTask();
+
+            if (task == null)
+                return;
+
+            tasks.Enqueue(task);
         }
 
         private void Attack()

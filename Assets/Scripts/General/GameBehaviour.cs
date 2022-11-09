@@ -14,6 +14,6 @@ namespace Game
     {
         public Owner Owner => _owner;
         [SerializeField]
-        private Owner _owner = Owner.Neutral;
+        protected Owner _owner = Owner.Neutral;
     }
 }

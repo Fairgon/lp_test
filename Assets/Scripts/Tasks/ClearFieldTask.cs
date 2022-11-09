@@ -31,13 +31,11 @@ namespace Game
 
         private void HandleOnPosition()
         {
-            movement.OnFinish += HandleOnPosition;
+            movement.OnFinish -= HandleOnPosition;
 
             animation = player.GetComponent<AnimationComponent>();
 
             animation.SetLevitating(true);
-
-            // TODO VFX;
 
             field.StartCleaning();
 
@@ -46,11 +44,11 @@ namespace Game
 
         private void HandleCleaned()
         {
+            field.OnCleaned -= HandleCleaned;
+
             animation.SetLevitating(false);
 
             OnFinish?.Invoke(this);
-
-            // TODO call UI Form.
         }
 
         public void Break()
